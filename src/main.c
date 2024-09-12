@@ -86,8 +86,11 @@ void PORT_init(){
 	PORTC->PCR[7] |= PORT_PCR_MUX(2);
 
 	//Set Receiving for PORT
-	 PTD->PDDR &= ~(1<<PTC12);
-	 PORTD->PCR[12] = PORT_PCR_MUX(2);
+	 PTC->PDDR &= ~(1<<PTC12);
+	 PORTC->PCR[12] = 0x00000110;
+
+	 PTD->PDDR |= 1<<PTD0;
+	 PORTD->PCR[0] = 0x00000100;
 }
 
 int main(void){
@@ -98,16 +101,18 @@ int main(void){
 	PORT_init();
 
 	LPUART1_init();
-	LPUART1_transmit_string("Running LPUART example\n\r");
-	LPUART1_transmit_string("Input character to echo...\n\r");
+//	LPUART1_transmit_string("Running LPUART example\n\r");
+//	LPUART1_transmit_string("Input character to echo...\n\r");
 
 
-
+	int isOn = 0;
 	for(;;) {
-		if(PTD->PDIR & (1<<PTC12)){
+		if(PTC->PDIR & (1<<PTC12)){
 			LPUART1_transmit_char('o');
 			LPUART1_transmit_char('n');
 			LPUART1_transmit_char('\n');
+			PTD-> PCOR |= 1<<PTD0;
+			delay(10000000);
 		}
 //		} else {
 //			LPUART1_transmit_char('o');
@@ -118,7 +123,7 @@ int main(void){
 //		}
 
 		//wait 2 seconds
-		delay(10000000);
+//		delay(10000000);
 		//LPUART1_transmit_char('>');
 		//LPUART1_receive_and_echo_char();
 	}
