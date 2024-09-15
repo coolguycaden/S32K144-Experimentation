@@ -29,11 +29,7 @@ void LPUART1_init(void) {
 
 	/**This code block is one line, split into 2 for readability*/
 	/** Clock Src= 1 (SOSCDIV2_CLK) */
-	PCC->PCCn[PCC_LPUART1_INDEX] |= PCC_PCCn_PCS(0b001) /*LINE CONTINUES*/
-		 /* Enable clock for LPUART1 regs */
-		 | PCC_PCCn_CGC_MASK;
-		/*LINE STOPS HERE, END*/
-
+	PCC->PCCn[PCC_LPUART1_INDEX] |= PCC_PCCn_PCS(0b001) | PCC_PCCn_CGC_MASK;
 
 
  /* Initialize for 9600 baud, 1 stop: */
@@ -74,11 +70,14 @@ void LPUART_init(LPUART_Type *lpuart, uint32_t baudRate, uint32_t busClock){
 
 	//TODO: fix this formatting
 	if (lpuart == LPUART0) {
-		PCC->PCCn[PCC_LPUART0_INDEX] = PCC_PCCn_CGC_MASK;
+		PCC->PCCn[PCC_LPUART0_INDEX] &= ~PCC_PCCn_CGC_MASK;
+		PCC->PCCn[PCC_LPUART0_INDEX] |= PCC_PCCn_PCS(0b001) | PCC_PCCn_CGC_MASK;
 	} else if (lpuart == LPUART1) {
-		PCC->PCCn[PCC_LPUART1_INDEX] = PCC_PCCn_CGC_MASK;
+		PCC->PCCn[PCC_LPUART1_INDEX] &= ~PCC_PCCn_CGC_MASK;
+		PCC->PCCn[PCC_LPUART1_INDEX] |= PCC_PCCn_PCS(0b001) | PCC_PCCn_CGC_MASK;
 	} else if (lpuart == LPUART2){
-		PCC->PCCn[PCC_LPUART2_INDEX] = PCC_PCCn_CGC_MASK;
+		PCC->PCCn[PCC_LPUART2_INDEX] &= ~PCC_PCCn_CGC_MASK;
+		PCC->PCCn[PCC_LPUART2_INDEX] |= PCC_PCCn_PCS(0b001) | PCC_PCCn_CGC_MASK;
 	}
 
 	// Set baud rate, interprets busClock as MHz
@@ -86,19 +85,18 @@ void LPUART_init(LPUART_Type *lpuart, uint32_t baudRate, uint32_t busClock){
 	lpuart->BAUD = LPUART_BAUD_SBR(sbr);
 
 	// Enable transmitters
-	lpuart->CTRL = LPUART_CTRL_TE_MASK;
+	lpuart->CTRL = 0x000C0000;
 }
 
 //ChatGPT generated
 void LPUART0_send_string(const char *str) {
-	int count = 0;
     while (*str) {
 
     	// Wait until transmit buffer is empty
-        while (!(LPUART0->STAT & LPUART_STAT_TDRE_MASK) && count < 100){count++;};
+        while (!(LPUART1->STAT & LPUART_STAT_TDRE_MASK));
 
         // Send character
-        LPUART0->DATA = *str++;
+        LPUART1->DATA = *str++;
     }
 }
 
