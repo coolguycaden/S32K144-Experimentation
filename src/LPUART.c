@@ -69,7 +69,7 @@ void LPUART1_init(void) {
 
 }
 
-//ChatGPT generated
+//ChatGPT generated, slightly changed
 void LPUART_init(LPUART_Type *lpuart, uint32_t baudRate, uint32_t busClock){
 
 	//TODO: fix this formatting
@@ -81,11 +81,11 @@ void LPUART_init(LPUART_Type *lpuart, uint32_t baudRate, uint32_t busClock){
 		PCC->PCCn[PCC_LPUART2_INDEX] = PCC_PCCn_CGC_MASK;
 	}
 
-	// Set baud rate
-	uint32_t sbr = (busClock / (baudRate * 16));
+	// Set baud rate, interprets busClock as MHz
+	uint32_t sbr = ((busClock * 1000000) / (baudRate * 16));
 	lpuart->BAUD = LPUART_BAUD_SBR(sbr);
 
-	// Enable transmitter
+	// Enable transmitters
 	lpuart->CTRL = LPUART_CTRL_TE_MASK;
 }
 

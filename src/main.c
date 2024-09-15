@@ -12,7 +12,8 @@ void delay(volatile int cycles)
 #include "LPUART.h"
 #define PTD0 0
 #define PTC12 12
-
+#define SW3_PIN 12
+#define SW3_PORT PTC
 
 void watchDogDisable (void){
 	WDOG->CNT = 0xD928C520;
@@ -43,24 +44,36 @@ void PORT_init(){
 	PORTD->PCR[0] = 0x00000100;
 }
 
-int main(void){
-	watchDogDisable();
-	SOSC_init_8MHz();
-	SPLL_init_160MHz();
-	NormalRUNmode_80MHz();
-	PORT_init();
+void SW3_init(void){
+	PCC->PCCn[PCC_PORTC_INDEX] = PCC_PCCn_CGC_MASK;
 
-	LPUART1_init();
+	// Set PTC12 (SW3) as GPIO
+	PORTC->PCR[SW3_PIN] = PORT_PCR_MUX(1);
+
+	// Set PTC12 as input
+	SW3_PORT->PDDR &= ~(1 << SW3_PIN);
+
+	// Enable pull-up resistor for SW3 button (active-low button)
+	PORTC->PCR[SW3_PIN] |= PORT_PCR_PE_MASK | PORT_PCR_PS_MASK;
+}
+
+int main(void){
+//	watchDogDisable();
+//	SOSC_init_8MHz();
+//	SPLL_init_160MHz();
+//	NormalRUNmode_80MHz();
+//	PORT_init();
+	SW3_init();
+
+	//Initializes LPUART0 with a baud rate of 9600 and SOSC of 8MHz
+	LPUART_init(LPUART0, 9600, 8);
 
 	for(;;) {
-		if(PTC->PDIR & (1<<PTC12)){
-//			LPUART1_transmit_char('o');
-//			LPUART1_transmit_char('n');
-//			LPUART1_transmit_char('\n');
-			LPUART_send_string("this is working");
-
-			PTD-> PCOR |= 1<<PTD0;
-			delay(10000000);
+		//if(PTC->PDIR & (1<<PTC12)){
+		if(SW3_PORT->PDIR & (1<<SW3_PIN)){
+			LPUART_send_string(LPUART0, "this is working");
+			while(){}
+//			PTD-> PCOR |= 1<<PTD0;
 		}
 
 	}

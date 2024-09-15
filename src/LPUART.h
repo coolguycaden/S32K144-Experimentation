@@ -19,4 +19,4 @@ void LPUART1_receive_and_echo_char(void);
 
 //Universal LPUART system print
 //ChatGPT generated
-LPUART_send_string(LPUART_Type, const char *);
+void LPUART_send_string(LPUART_Type *, const char *);
