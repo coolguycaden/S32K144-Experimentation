@@ -63,16 +63,18 @@ int main(void){
 //	SPLL_init_160MHz();
 //	NormalRUNmode_80MHz();
 //	PORT_init();
+
 	SW3_init();
 
 	//Initializes LPUART0 with a baud rate of 9600 and SOSC of 8MHz
 	LPUART_init(LPUART0, 9600, 8);
 
-	for(;;) {
+	while(1) {
 		//if(PTC->PDIR & (1<<PTC12)){
-		if(SW3_PORT->PDIR & (1<<SW3_PIN)){
+		//if(SW3_PORT->PDIR & (1<<SW3_PIN)){
+		if(!(SW3_PORT->PDIR & (1 << SW3_PIN))){
 			LPUART_send_string(LPUART0, "this is working");
-			while(){}
+			while(!(SW3_PORT->PDIR & (1 << SW3_PIN))){};
 //			PTD-> PCOR |= 1<<PTD0;
 		}
 
