@@ -11,7 +11,7 @@ void LPUART0_init(void){
 	// 48 MHz / (16 * 115200) = 26.04
 	//LPUART0->BAUD = LPUART_BAUD_SBR(26);
 
-	// 80 / (16 * 9600) =
+	// 8 MHz / (16 * 9600) = ~52
 	LPUART0->BAUD = LPUART_BAUD_SBR(52);
 
 	// Enable transmitter
@@ -91,10 +91,11 @@ void LPUART_init(LPUART_Type *lpuart, uint32_t baudRate, uint32_t busClock){
 
 //ChatGPT generated
 void LPUART0_send_string(const char *str) {
+	int count = 0;
     while (*str) {
 
     	// Wait until transmit buffer is empty
-        while (!(LPUART0->STAT & LPUART_STAT_TDRE_MASK));
+        while (!(LPUART0->STAT & LPUART_STAT_TDRE_MASK) && count < 100){count++;};
 
         // Send character
         LPUART0->DATA = *str++;
