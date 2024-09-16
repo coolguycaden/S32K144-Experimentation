@@ -2,7 +2,7 @@
 
 
 
-//ChatGPT generated
+//ChatGPT generated, initializes LPUART0 to PORT C at 4.8 MHz
 void LPUART0_init(void){
 	//Enable clock for LPUART0
 	PCC->PCCn[PCC_LPUART0_INDEX] = PCC_PCCn_CGC_MASK;
@@ -71,24 +71,35 @@ void LPUART_init(LPUART_Type *lpuart, uint32_t baudRate, uint32_t busClock){
 	//TODO: fix this formatting
 	if (lpuart == LPUART0) {
 		PCC->PCCn[PCC_LPUART0_INDEX] &= ~PCC_PCCn_CGC_MASK;
+
+		//TODO: understand what this line means more intimately, have feeling I did this wrong
 		PCC->PCCn[PCC_LPUART0_INDEX] |= PCC_PCCn_PCS(0b001) | PCC_PCCn_CGC_MASK;
+		
 	} else if (lpuart == LPUART1) {
 		PCC->PCCn[PCC_LPUART1_INDEX] &= ~PCC_PCCn_CGC_MASK;
+
+		//TODO: understand what this line means more intimately, have feeling I did this wrong
 		PCC->PCCn[PCC_LPUART1_INDEX] |= PCC_PCCn_PCS(0b001) | PCC_PCCn_CGC_MASK;
+		
 	} else if (lpuart == LPUART2){
 		PCC->PCCn[PCC_LPUART2_INDEX] &= ~PCC_PCCn_CGC_MASK;
+
+		//TODO: understand what this line means more intimately, have feeling I did this wrong
 		PCC->PCCn[PCC_LPUART2_INDEX] |= PCC_PCCn_PCS(0b001) | PCC_PCCn_CGC_MASK;
 	}
 
-	// Set baud rate, interprets busClock as MHz
+	// Set baud rate, interprets busClock as MHz and changes it into hz
 	uint32_t sbr = ((busClock * 1000000) / (baudRate * 16));
+
+	//sets BAUD rate of the LPUART
 	lpuart->BAUD = LPUART_BAUD_SBR(sbr);
 
-	// Enable transmitters
+	// Enable transmitters, this works because the C represents the byte 1100
+	// 1100, the first 1 represents TRANSMITTERS ON, the second represents RECEIVERS ON
 	lpuart->CTRL = 0x000C0000;
 }
 
-//ChatGPT generated
+//ChatGPT generated, prints a string assuming LPUART0 has been initialized
 void LPUART0_send_string(const char *str) {
     while (*str) {
 
@@ -100,40 +111,62 @@ void LPUART0_send_string(const char *str) {
     }
 }
 
-void LPUART1_transmit_char(char send) { /* Function to Transmit single Char */
- while((LPUART1->STAT & LPUART_STAT_TDRE_MASK)>>LPUART_STAT_TDRE_SHIFT==0);
- /* Wait for transmit buffer to be empty */
- LPUART1->DATA=send; /* Send data */
+/* Function to Transmit single Char */
+void LPUART1_transmit_char(char send) { 
+	
+    /* Wait for transmit buffer to be empty */
+    while((LPUART1->STAT & LPUART_STAT_TDRE_MASK)>>LPUART_STAT_TDRE_SHIFT==0);
+
+     /* Send data */
+    LPUART1->DATA=send;
 }
 
-void LPUART1_transmit_string(char data_string[]) { /* Function to Transmit whole string */
- uint32_t i=0;
- while(data_string[i] != '\0') { /* Send chars one at a time */
- LPUART1_transmit_char(data_string[i]);
- i++;
- }
+/* Function to Transmit whole string */
+void LPUART1_transmit_string(char data_string[]) { 
+	
+    /* Send chars one at a time */
+    uint32_t i=0;
+    while(data_string[i] != '\0') { 
+        LPUART1_transmit_char(data_string[i]);
+        i++;
+    }
 }
 
-char LPUART1_receive_char(void) { /* Function to Receive single Char */
- char receive;
- while((LPUART1->STAT & LPUART_STAT_RDRF_MASK)>>LPUART_STAT_RDRF_SHIFT==0);
- /* Wait for received buffer to be full */
- receive= LPUART1->DATA; /* Read received data*/
- return receive;
+/* Function to Receive single Char */
+char LPUART1_receive_char(void) { 
+    char receive;
+
+    /* Wait for received buffer to be full */
+    while((LPUART1->STAT & LPUART_STAT_RDRF_MASK)>>LPUART_STAT_RDRF_SHIFT==0);
+    
+    
+    /* Read received data*/
+    receive= LPUART1->DATA; 
+    
+    return receive;
 }
 
-void LPUART1_receive_and_echo_char(void) { /* Function to echo received char back */
- char send = LPUART1_receive_char(); /* Receive Char */
- LPUART1_transmit_char(send); /* Transmit same char back to the sender */
- LPUART1_transmit_char('\n'); /* New line */
+/* Function to echo received char back */
+void LPUART1_receive_and_echo_char(void) { 
+    
+    /* Receive Char */	
+    char send = LPUART1_receive_char(); 
+    
+    /* Transmit same char back to the sender */
+    LPUART1_transmit_char(send); 
+
+    /* New line */
+    LPUART1_transmit_char('\n'); 
 }
 
 
-//ChatGPT generated, general purpose string printing
+//ChatGPT generated, general purpose string printing, assumes LPUART is initialized
 void LPUART_send_string(LPUART_Type *lpuart, const char *str) {
     while (*str) {
+	    
         // Wait until transmit buffer is empty
         while (!(lpuart->STAT & LPUART_STAT_TDRE_MASK));
+	    
         // Send character
         lpuart->DATA = *str++;
     }
