@@ -257,7 +257,7 @@ void LPUART1_receive_and_echo_char(void) {
 }
 
 
-//ChatGPT generated, general purpose string printing, assumes LPUART is initialized
+//General purpose string printing, assumes LPUART is initialized
 void LPUART_send_string(LPUART_Type *lpuart, const char *str) {
     while (*str) {
 	    
